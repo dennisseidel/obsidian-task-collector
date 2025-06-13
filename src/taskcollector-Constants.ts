@@ -82,6 +82,7 @@ export const CACHE_DEFAULT: TaskCollectorCache = {
     completedMarks: "",
     incompleteMarks: "",
     skipSectionExpr: null,
+    skipRootExpr: null,
     marks: {},
     removeExpr: {},
     undoExpr: {},

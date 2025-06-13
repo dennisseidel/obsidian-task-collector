@@ -33,7 +33,7 @@ export class TaskCollector {
     blockRef = new RegExp(/^(.*?)( \^[A-Za-z0-9-]+)?$/);
     continuation = new RegExp(/^( {2,}|\t)/);
     stripTask = new RegExp(/^([\s>]*(?:-|\d+\.)) \[.\] (.*)$/);
-    skipRootRegex: RegExp | null;
+    #skipRootRegex: RegExp | null;
 
     init(settings: TaskCollectorSettings): void {
         this.settings = settings;
@@ -65,7 +65,7 @@ export class TaskCollector {
         this.cache.skipSectionExpr = trySkipSectionRegex(
             settings.skipSectionMatch,
         );
-        this.cache.skipRootRegex = trySkipRootRegex(settings.skipRootPattern);
+        this.cache.skipRootExpr = trySkipRootRegex(settings.skipRootPattern);
 
         this.logDebug("configuration read", this.settings, this.cache);
     }
@@ -517,7 +517,7 @@ export class TaskCollector {
             if (rootMatch) {
                 const leadingSpaces =
                     rootMatch[1].length - rootMatch[1].trimStart().length;
-                if (leadingSpaces === 0 && this.skipRootRegex?.test(line)) {
+                if (leadingSpaces === 0 && this.isSkippedRoot(line)) {
                     // begin skipping this root + its subtasks
                     rootSkipping = true;
                     rootIndent = 0;
@@ -675,6 +675,10 @@ export class TaskCollector {
 
     private isSkippedSection(lineText: string): boolean {
         return this.cache.skipSectionExpr?.test(lineText);
+    }
+
+    private isSkippedRoot(lineText: string): boolean {
+        return this.cache.skipRootExpr?.test(lineText);
     }
 
     private isCallout(lineText: string): boolean {
