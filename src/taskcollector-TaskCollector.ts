@@ -33,6 +33,7 @@ export class TaskCollector {
     blockRef = new RegExp(/^(.*?)( \^[A-Za-z0-9-]+)?$/);
     continuation = new RegExp(/^( {2,}|\t)/);
     stripTask = new RegExp(/^([\s>]*(?:-|\d+\.)) \[.\] (.*)$/);
+    skipRootRegex: RegExp | null;
 
     init(settings: TaskCollectorSettings): void {
         this.settings = settings;
@@ -64,6 +65,7 @@ export class TaskCollector {
         this.cache.skipSectionExpr = trySkipSectionRegex(
             settings.skipSectionMatch,
         );
+        this.cache.skipRootRegex = trySkipRootRegex(settings.skipRootPattern);
 
         this.logDebug("configuration read", this.settings, this.cache);
     }
@@ -494,8 +496,35 @@ export class TaskCollector {
         let inSkippedSection = false;
         let i = -1;
 
+        let rootSkipping = false;
+        let rootIndent = 0;
+
         for (let line of source) {
             i++;
+            const rootMatch = this.anyTaskMark.exec(line);
+            if (rootSkipping) {
+                // still under a skipped root if indent is deeper
+                const subMatch = this.anyTaskMark.exec(line);
+                const subIndent = subMatch
+                    ? subMatch[1].length - subMatch[1].trimStart().length
+                    : Number.POSITIVE_INFINITY;
+                if (subIndent > rootIndent || line.trim() === "") {
+                    remaining.push(line);
+                    continue;
+                }
+                rootSkipping = false;
+            }
+            if (rootMatch) {
+                const leadingSpaces =
+                    rootMatch[1].length - rootMatch[1].trimStart().length;
+                if (leadingSpaces === 0 && this.skipRootRegex?.test(line)) {
+                    // begin skipping this root + its subtasks
+                    rootSkipping = true;
+                    rootIndent = 0;
+                    remaining.push(line);
+                    continue;
+                }
+            }
             if (line.startsWith("#") || line.trim() === "---") {
                 inSkippedSection = this.isSkippedSection(line);
                 this.logDebug("TC: section", line, inSkippedSection);
@@ -703,7 +732,12 @@ export const _regex = {
     tryUndoRegex,
     tryRemoveTextRegex,
     trySkipSectionRegex,
+    trySkipRootRegex,
 };
+
+function trySkipRootRegex(param: string): RegExp {
+    return param ? new RegExp(param) : null;
+}
 
 function trySkipSectionRegex(param: string): RegExp {
     return param ? new RegExp(param) : null;

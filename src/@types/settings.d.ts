@@ -5,6 +5,7 @@ export type TaskCollectorSettings = {
     markCycle: string;
     markCycleRemoveTask: boolean;
     skipSectionMatch: string;
+    skipRootPattern: string;
     contextMenu: {
         markTask: boolean;
         resetTask: boolean;
@@ -45,6 +46,7 @@ export type TaskCollectorCache = {
     removeExpr: Record<string, RegExp>; // (settings name, removeTextRegex)
     undoExpr: Record<string, RegExp>; // (settings name, undoRegex)
     skipSectionExpr: RegExp | null;
+    skipRootRegex: RegExp | null;
     completedMarks: string; // marks that should be treated as "complete"
     incompleteMarks: string; // marks that should be treated as "incomplete"
     areaHeadings: string[]; // configured area headings

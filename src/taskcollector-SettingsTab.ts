@@ -180,6 +180,20 @@ export class TaskCollectorSettingsTab extends PluginSettingTab {
                     }),
             );
 
+        new Setting(this.containerEl)
+            .setName("Skip root-task pattern")
+            .setDesc(
+                "A regex; if a top-level task line matches, it and its subtasks won’t be collected.",
+            )
+            .addText((text) =>
+                text
+                    .setPlaceholder("- \\[c\\].*")
+                    .setValue(this.newSettings.skipRootPattern)
+                    .onChange(async (value) => {
+                        this.newSettings.skipRootPattern = value;
+                    }),
+            );
+
         new Setting(this.containerEl).setHeading().setName("Task groups");
 
         this.containerEl.createEl("p", {

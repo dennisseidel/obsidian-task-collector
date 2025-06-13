@@ -44,6 +44,7 @@ export const DEFAULT_SETTINGS: TaskCollectorSettings = {
     convertEmptyLines: false,
     hideNotifications: false,
     skipSectionMatch: "",
+    skipRootPattern: "",
     version: {
         major: 0,
         minor: 0,
